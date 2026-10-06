@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Turkish Plate Lookup</title>
+<meta name="description" content="Decode a Turkish vehicle registration plate — province, commercial, diplomatic, police, gendarmerie, protocol, and military formats.">
+<style>
+  :root{
+    --bg:#f5f6f8;
+    --card:#ffffff;
+    --text:#1c1f26;
+    --muted:#6b7280;
+    --accent:#c0392b;
+    --accent-2:#1e3a5f;
+    --border:#e3e5ea;
+    --err-bg:#fdeceb;
+    --err-text:#a4291f;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#14161a;
+      --card:#1e2128;
+      --text:#e9eaed;
+      --muted:#9aa0aa;
+      --accent:#e05a4a;
+      --accent-2:#5b8fd6;
+      --border:#2c2f37;
+      --err-bg:#3a1f1d;
+      --err-text:#f0897d;
+    }
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    padding:max(20px, env(safe-area-inset-top)) 16px 40px;
+    display:flex;
+    justify-content:center;
+  }
+  .wrap{ width:100%; max-width:520px; }
+  h1{
+    font-size:22px;
+    margin:4px 0 2px;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{
+    color:var(--muted);
+    font-size:14px;
+    margin:0 0 20px;
+    line-height:1.4;
+  }
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:18px;
+    margin-bottom:16px;
+    box-shadow:0 1px 2px rgba(0,0,0,0.04);
+  }
+  label{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    color:var(--muted);
+    margin-bottom:8px;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+  }
+  .plate-input-row{
+    display:flex;
+    gap:8px;
+  }
+  input[type=text]{
+    flex:1;
+    font-size:20px;
+    font-weight:700;
+    letter-spacing:0.06em;
+    padding:12px 14px;
+    border-radius:10px;
+    border:1.5px solid var(--border);
+    background:var(--bg);
+    color:var(--text);
+    text-transform:uppercase;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  input[type=text]:focus{
+    outline:none;
+    border-color:var(--accent-2);
+  }
+  button{
+    font-size:15px;
+    font-weight:600;
+    padding:12px 18px;
+    border-radius:10px;
+    border:none;
+    background:var(--accent-2);
+    color:#fff;
+    cursor:pointer;
+  }
+  button:active{ opacity:0.85; }
+  .hint{
+    font-size:12px;
+    color:var(--muted);
+    margin-top:8px;
+    line-height:1.5;
+  }
+  #result{ display:none; margin-bottom:16px; }
+  #result.show{ display:block; }
+  #result.err .card{ background:var(--err-bg); color:var(--err-text); }
+
+  .plate-visual{
+    display:inline-block;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-weight:800;
+    font-size:26px;
+    letter-spacing:0.08em;
+    padding:10px 18px;
+    border-radius:8px;
+    border:3px solid rgba(0,0,0,0.25);
+    margin-bottom:10px;
+  }
+  .type-chip{
+    display:inline-block;
+    font-size:11.5px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    padding:4px 10px;
+    border-radius:999px;
+    margin-bottom:10px;
+  }
+  .result-title{
+    font-size:22px;
+    font-weight:800;
+    margin:2px 0 4px;
+  }
+  .result-detail{
+    font-size:14px;
+    color:var(--muted);
+    line-height:1.5;
+  }
+  .result-note{
+    font-size:12.5px;
+    color:var(--muted);
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px dashed var(--border);
+    line-height:1.5;
+  }
+
+  details{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:14px 18px;
+    margin-bottom:14px;
+  }
+  summary{
+    cursor:pointer;
+    font-weight:600;
+    font-size:14px;
+    color:var(--accent-2);
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:12px;
+    font-size:13px;
+  }
+  td, th{
+    padding:7px 4px;
+    border-bottom:1px solid var(--border);
+    text-align:left;
+    vertical-align:top;
+  }
+  td.code{
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-weight:700;
+    width:34px;
+    color:var(--accent);
+  }
+  .swatch{
+    display:inline-block;
+    width:16px;
+    height:16px;
+    border-radius:4px;
+    border:1px solid rgba(0,0,0,0.25);
+    vertical-align:middle;
+  }
+  .legend-format{
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:12px;
+    white-space:nowrap;
+  }
+  footer{
+    color:var(--muted);
+    font-size:11.5px;
+    text-align:center;
+    margin-top:22px;
+    line-height:1.6;
+  }
+  footer a{ color:var(--accent-2); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🇹🇷 Plate Lookup</h1>
+  <p class="subtitle">Enter a Turkish vehicle registration number (VRN) — civilian, commercial, or official/government — to see what it decodes to.</p>
+
+  <div class="card">
+    <label for="plate">Plate number</label>
+    <div class="plate-input-row">
+      <input type="text" id="plate" placeholder="34 ABC" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" inputmode="text">
+      <button id="go">Look up</button>
+    </div>
+    <div class="hint">
+      For privacy, you don't need to enter the last 2–4 digits — they don't affect the province/category anyway. Just <b>34 ABC</b> works; the plate shown in results fills in a random number so it still looks like a real plate.<br>
+      Also recognizes: diplomatic (<b>06 CD</b>), gendarmerie (<b>34 JAA</b>), state protocol (<b>0005</b>), and military numeric plates (<b>7 34 128</b>).
+    </div>
+  </div>
+
+  <div id="result"><div class="card"></div></div>
+
+  <details>
+    <summary>All 81 province codes</summary>
+    <table id="fullTable"></table>
+  </details>
+
+  <details>
+    <summary>Plate colors &amp; official vehicle types</summary>
+    <p class="result-detail" style="margin-top:10px;">Turkey uses plate <em>color</em>, not just the text, to mark official vehicles — something this tool can only infer, not see. Auto-detected categories below are colored in results; the rest are shown for reference.</p>
+    <table id="legendTable">
+      <tr><th>Color</th><th>Category</th><th>Format</th><th>Meaning</th></tr>
+    </table>
+    <p class="result-note" style="border-top:none;padding-top:0;">
+      Compiled from Turkish traffic-law explainer sources cross-checked against each other (see footer) rather than a single official gazette, so treat exact protocol numbers and edge cases as indicative, not legally authoritative.
+    </p>
+  </details>
+
+  <footer>
+    Codes 01–81 assigned to Turkey's 81 provinces; 01–67 mostly alphabetical (with Mersin/İçel, Kahramanmaraş/Maraş, Şanlıurfa/Urfa historical exceptions), 68–81 added later in order of creation.<br>
+    Sources: Wikipedia's <a href="https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_Turkey" target="_blank" rel="noopener">Vehicle registration plates of Turkey</a> &amp; <a href="https://en.wikipedia.org/wiki/Provinces_of_Turkey" target="_blank" rel="noopener">Provinces of Turkey</a>; commercial/official plate details cross-checked via Turkish traffic explainer sites (Otokoç, arabam.com, Ekşi Sözlük, DonanımHaber, Afyon Belediyesi taxi regulation).<br>
+    Tip: on iPhone, tap Share → “Add to Home Screen” in Safari to use this like an app.
+  </footer>
+</div>
+
+<script>
+const PROVINCES = {
+  "01":"Adana","02":"Adıyaman","03":"Afyonkarahisar","04":"Ağrı","05":"Amasya",
+  "06":"Ankara","07":"Antalya","08":"Artvin","09":"Aydın","10":"Balıkesir",
+  "11":"Bilecik","12":"Bingöl","13":"Bitlis","14":"Bolu","15":"Burdur",
+  "16":"Bursa","17":"Çanakkale","18":"Çankırı","19":"Çorum","20":"Denizli",
+  "21":"Diyarbakır","22":"Edirne","23":"Elazığ","24":"Erzincan","25":"Erzurum",
+  "26":"Eskişehir","27":"Gaziantep","28":"Giresun","29":"Gümüşhane","30":"Hakkari",
+  "31":"Hatay","32":"Isparta","33":"Mersin","34":"İstanbul","35":"İzmir",
+  "36":"Kars","37":"Kastamonu","38":"Kayseri","39":"Kırklareli","40":"Kırşehir",
+  "41":"Kocaeli","42":"Konya","43":"Kütahya","44":"Malatya","45":"Manisa",
+  "46":"Kahramanmaraş","47":"Mardin","48":"Muğla","49":"Muş","50":"Nevşehir",
+  "51":"Niğde","52":"Ordu","53":"Rize","54":"Sakarya","55":"Samsun",
+  "56":"Siirt","57":"Sinop","58":"Sivas","59":"Tekirdağ","60":"Tokat",
+  "61":"Trabzon","62":"Tunceli","63":"Şanlıurfa","64":"Uşak","65":"Van",
+  "66":"Yozgat","67":"Zonguldak","68":"Aksaray","69":"Bayburt","70":"Karaman",
+  "71":"Kırıkkale","72":"Batman","73":"Şırnak","74":"Bartın","75":"Ardahan",
+  "76":"Iğdır","77":"Yalova","78":"Karabük","79":"Kilis","80":"Osmaniye","81":"Düzce"
+};
+
+const COMMERCIAL_LETTERS = {
+  T:"Taxi (ticari taksi)",
+  M:"Minibus (minibüs)",
+  D:"Dolmuş (shared taxi / jitney)",
+  S:"Servis (private shuttle — staff, school, tourism)"
+};
+
+const DIPLOMATIC_CODES = {
+  CD:"Corps Diplomatique — ambassadors & diplomatic agents",
+  CC:"Corps Consulaire — consular officers",
+  CM:"Mission staff — embassy administrative & technical staff"
+};
+
+const MILITARY_BRANCHES = {
+  "0":"Ministry of National Defense / General Staff",
+  "1":"1st Army Command",
+  "2":"2nd Army Command",
+  "3":"3rd Army Command",
+  "4":"4th Army (Aegean) Command",
+  "5":"Naval Forces",
+  "6":"Air Forces",
+  "7":"Gendarmerie General Command"
+};
+
+const PROTOCOL_OFFICES = {
+  "0001":"Speaker of the Grand National Assembly (TBMM)",
+  "0002":"Vice President of the Republic (post-2018 presidential system; this number was the Prime Minister's Office before 2018)",
+  "0003":"President of the Constitutional Court",
+  "0004":"Chief of the General Staff",
+  "0005":"Minister of Foreign Affairs",
+  "0007":"Minister of Industry and Technology",
+  "0011":"Minister of Youth and Sports",
+  "0016":"Minister of National Defense",
+  "0017":"Minister of Interior",
+  "0018":"Minister of Treasury and Finance",
+  "0021":"Minister of Health",
+  "0023":"Minister of Agriculture and Forestry",
+  "0025":"Minister of Trade",
+  "0026":"Minister of National Education",
+  "0027":"Minister of Culture and Tourism",
+  "0028":"Minister of Energy and Natural Resources",
+  "0033":"Minister of Transport and Infrastructure",
+  "0035":"Minister of Justice"
+};
+
+// Visual themes approximate real plate colors
+const THEME = {
+  civilian:    { bg:"#ffffff", fg:"#111111", border:"rgba(0,0,0,0.35)", chipBg:"#e3e5ea", chipFg:"#33363d", label:"Civilian plate (white)" },
+  commercial:  { bg:"#ffffff", fg:"#111111", border:"rgba(0,0,0,0.35)", chipBg:"#f4d35e", chipFg:"#5a4600", label:"Commercial passenger plate (white, letter-coded)" },
+  police:      { bg:"#1447e6", fg:"#ffffff", border:"#0d2f9e",         chipBg:"#1447e6", chipFg:"#ffffff", label:"National Police (blue plate)" },
+  gendarmerie: { bg:"#1447e6", fg:"#ffffff", border:"#0d2f9e",         chipBg:"#274690", chipFg:"#ffffff", label:"Gendarmerie (blue plate)" },
+  diplomatic:  { bg:"#0f8a3c", fg:"#ffffff", border:"#0a5c28",         chipBg:"#0f8a3c", chipFg:"#ffffff", label:"Diplomatic corps (green plate)" },
+  protocol:    { bg:"#c0392b", fg:"#ffd54a", border:"#7c1f16",         chipBg:"#c0392b", chipFg:"#ffd54a", label:"State protocol (red & gold plate)" },
+  military:    { bg:"#ffffff", fg:"#111111", border:"#4b5320",         chipBg:"#4b5320", chipFg:"#ffffff", label:"Military (white plate, numeric only)" },
+  official:    { bg:"#111111", fg:"#ffffff", border:"#000000",         chipBg:"#111111", chipFg:"#ffffff", label:"Official service vehicle (black plate)" }
+};
+
+function normalize(str){
+  return str.toLocaleUpperCase('tr-TR').trim();
+}
+
+function esc(s){
+  return String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+}
+
+// Cosmetic only: the trailing serial digits don't affect province/category lookup,
+// so the app never requires them as input. When missing, a random 4-digit number
+// fills the visual so the rendered plate still looks like a real one.
+function randomDigits(){
+  return String(1000 + Math.floor(Math.random() * 9000));
+}
+
+const PRIVACY_NOTE = `<div class="result-note">The last 4 digits shown are randomly generated for display only — this tool never needs (or stores) a vehicle's actual serial number.</div>`;
+
+function renderPlate(theme, plateText){
+  return `<span class="plate-visual" style="background:${theme.bg};color:${theme.fg};border-color:${theme.border};">${esc(plateText)}</span>`;
+}
+
+function renderChip(theme){
+  return `<span class="type-chip" style="background:${theme.chipBg};color:${theme.chipFg};">${esc(theme.label)}</span>`;
+}
+
+function showResult(html, isError){
+  const wrap = document.getElementById('result');
+  wrap.className = 'show' + (isError ? ' err' : '');
+  wrap.innerHTML = `<div class="card">${html}</div>`;
+}
+
+function lookup(){
+  const raw = document.getElementById('plate').value;
+  const clean = normalize(raw).replace(/\s+/g,' ').trim();
+  const noSpace = clean.replace(/[\s-]/g,'');
+
+  if(!clean){
+    showResult(`<div class="result-detail">Type a plate above and hit Look up.</div>`, true);
+    return;
+  }
+
+  // 1) Pure numeric -> Protocol (exactly 4 digits) or Military (anything else numeric)
+  if(/^[0-9]+$/.test(noSpace)){
+    if(noSpace.length === 4){
+      const office = PROTOCOL_OFFICES[noSpace];
+      const theme = THEME.protocol;
+      const html = `
+        ${renderChip(theme)}
+        ${renderPlate(theme, noSpace)}
+        <div class="result-title">${office ? esc(office) : 'Reserved state protocol number'}</div>
+        <div class="result-detail">${office
+          ? `Fixed 4-digit "red plate" numbers (0001–0035ish) are reserved for the most senior offices of state.`
+          : `This exact number isn't in this tool's reference list, but 4-digit red-and-gold plates are reserved for senior state offices. The President's vehicle doesn't use a numbered plate at all — it displays the presidential seal (forsu) instead.`}</div>
+        <div class="result-note">Compiled from Turkish news/explainer sources, not an official consolidated list — treat specific numbers as indicative.</div>`;
+      showResult(html, false);
+      return;
+    } else if(noSpace.length >= 3){
+      const branchDigit = noSpace[0];
+      const branch = MILITARY_BRANCHES[branchDigit];
+      const theme = THEME.military;
+      const html = `
+        ${renderChip(theme)}
+        ${renderPlate(theme, clean)}
+        <div class="result-title">${branch ? esc(branch) : 'Unrecognized branch code'}</div>
+        <div class="result-detail">Military plates are numeric only. The leading digit identifies the command: 0 Defense Ministry/General Staff, 1–4 Army Commands, 5 Navy, 6 Air Force, 7 Gendarmerie.</div>
+        ${branchDigit === '7' ? `<div class="result-note">As Gendarmerie, positions 2–3 of the plate typically carry the province code (e.g. a plate starting "734…" relates to code 34 / İstanbul). Remaining digits denote the specific unit and aren't decodable here.</div>` : `<div class="result-note">Remaining digits denote army corps/division/brigade and aren't decodable by this tool.</div>`}`;
+      showResult(html, false);
+      return;
+    }
+  }
+
+  // 2) Diplomatic: NN CD/CC/CM (+ optional NNNN)
+  let m = clean.match(/^(\d{2})\s*(CD|CC|CM)\s*(\d{2,4})?$/);
+  if(m){
+    const [, code, letters, enteredNum] = m;
+    const num = enteredNum || randomDigits();
+    const province = PROVINCES[code];
+    const theme = THEME.diplomatic;
+    const html = `
+      ${renderChip(theme)}
+      ${renderPlate(theme, `${code} ${letters} ${num}`)}
+      <div class="result-title">${esc(DIPLOMATIC_CODES[letters])}</div>
+      <div class="result-detail">Registered via ${province ? esc(province) + ' Province' : 'code ' + code} (embassies are typically 06/Ankara; consulates use the province they sit in, e.g. 34/İstanbul).</div>
+      ${enteredNum ? '' : PRIVACY_NOTE}`;
+    showResult(html, false);
+    return;
+  }
+
+  // 3) Gendarmerie letter-coded: NN JAA..JZZ (+ optional NNNN)
+  m = clean.match(/^(\d{2})\s*(J[A-Z]{2})\s*(\d{2,4})?$/);
+  if(m){
+    const [, code, letters, enteredNum] = m;
+    const num = enteredNum || randomDigits();
+    const province = PROVINCES[code];
+    const theme = THEME.gendarmerie;
+    const html = `
+      ${renderChip(theme)}
+      ${renderPlate(theme, `${code} ${letters} ${num}`)}
+      <div class="result-title">Gendarmerie vehicle</div>
+      <div class="result-detail">Jandarma Genel Komutanlığı service vehicle, registered via ${province ? esc(province) + ' Province' : 'code ' + code} (letter group JAA–JZZ). Some Gendarmerie vehicles instead use an all-numeric military-style plate starting with 7 — try entering one of those to see the branch breakdown.</div>
+      ${enteredNum ? '' : PRIVACY_NOTE}`;
+    showResult(html, false);
+    return;
+  }
+
+  // 4) Standard civilian / commercial / police pattern: NN LLL (+ optional NNNN)
+  m = clean.match(/^(\d{2})\s*([A-ZÇĞİÖŞÜ]{1,3})\s*(\d{2,4})?$/);
+  if(m){
+    const [, code, letters, enteredNum] = m;
+    const num = enteredNum || randomDigits();
+    const province = PROVINCES[code];
+
+    if(!province){
+      showResult(`<div class="result-title" style="font-size:16px;">Code ${esc(code)}</div><div class="result-detail">No province uses code ${esc(code)}. Valid range is 01–81.</div>`, true);
+      return;
+    }
+
+    // Commercial passenger transport: the FIRST letter of the group is the category code
+    // (T/M/D/S). The remaining letters, if any, are just sequential fill — small
+    // provinces may still be on a single letter ("34 T 1234"), while high-volume
+    // provinces like İstanbul have exhausted single/double letters and use three
+    // ("34 TEY 1234"), always still starting with the category letter.
+    if(COMMERCIAL_LETTERS[letters[0]]){
+      const theme = THEME.commercial;
+      const html = `
+        ${renderChip(theme)}
+        ${renderPlate(theme, `${code} ${letters} ${num}`)}
+        <div class="result-title">${esc(province)}</div>
+        <div class="result-detail">Likely a <b>${esc(COMMERCIAL_LETTERS[letters[0]])}</b> — the leading letter of the group marks the category (T taxi, M minibüs, D dolmuş, S servis). Any extra letters are just sequential fill, not part of the code. Still a white plate, same as private cars.</div>
+        <div class="result-note">This is a municipal convention, not a nationally codified rule, so treat it as a strong hint rather than a certainty.</div>
+        ${enteredNum ? '' : PRIVACY_NOTE}`;
+      showResult(html, false);
+      return;
+    }
+
+    // Possible Police plate: letter group is only "A" repeated 1-3 times
+    if(/^A{1,3}$/.test(letters)){
+      const theme = THEME.civilian;
+      const policeTheme = THEME.police;
+      const html = `
+        ${renderChip(theme)}
+        ${renderPlate(theme, `${code} ${letters} ${num}`)}
+        <div class="result-title">${esc(province)}</div>
+        <div class="result-detail">Reads as an ordinary civilian registration in ${esc(province)} Province.</div>
+        <div class="result-note">${renderChip(policeTheme)}<br>A letter group of just "A"/"AA"/"AAA" after the province code is also how National Police (Emniyet Genel Müdürlüğü) vehicles are coded, on a <b>blue</b> plate. Text alone can't tell the two apart — if you know the plate is blue, treat this as a police vehicle instead.</div>
+        ${enteredNum ? '' : PRIVACY_NOTE}`;
+      showResult(html, false);
+      return;
+    }
+
+    const theme = THEME.civilian;
+    const html = `
+      ${renderChip(theme)}
+      ${renderPlate(theme, `${code} ${letters} ${num}`)}
+      <div class="result-title">${esc(province)}</div>
+      <div class="result-detail">Plate "${esc(code + ' ' + letters)}" is registered in ${esc(province)} Province.</div>
+      ${enteredNum ? '' : PRIVACY_NOTE}`;
+    showResult(html, false);
+    return;
+  }
+
+  showResult(`<div class="result-title" style="font-size:16px;">Not recognized</div><div class="result-detail">Try a civilian plate like "34 ABC", a diplomatic plate like "06 CD", a protocol number like "0005", or a military plate like "7 34 128".</div>`, true);
+}
+
+document.getElementById('go').addEventListener('click', lookup);
+document.getElementById('plate').addEventListener('keydown', e => { if(e.key === 'Enter') lookup(); });
+
+// Build full province reference table
+const tbl = document.getElementById('fullTable');
+Object.keys(PROVINCES).sort().forEach(code=>{
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td class="code">${code}</td><td>${PROVINCES[code]}</td>`;
+  tbl.appendChild(tr);
+});
+
+// Build plate-color legend table
+const legendRows = [
+  { theme: THEME.civilian,    cat:"Civilian (private)",              fmt:"34 ABC 123",   meaning:"Standard passenger car / motorcycle." },
+  { theme: THEME.commercial,  cat:"Commercial passenger transport",  fmt:"34 T 1234",     meaning:"T taxi, M minibüs, D dolmuş, S servis (shuttle) — leading letter of the group; extra letters are just sequential fill, municipal quota system." },
+  { theme: THEME.official,    cat:"Official service vehicle",        fmt:"varies",        meaning:"Ministries, municipalities, public institutions, ambulances, fire brigade." },
+  { theme: THEME.police,      cat:"National Police",                 fmt:"06 A 1234",     meaning:"Emniyet Genel Müdürlüğü vehicles; letter group is A, AA, or AAA." },
+  { theme: THEME.gendarmerie, cat:"Gendarmerie",                     fmt:"34 JAA 12",     meaning:"Jandarma Genel Komutanlığı; letter group JAA–JZZ (or numeric military-style plate starting with 7)." },
+  { theme: THEME.diplomatic,  cat:"Diplomatic corps",                fmt:"06 CD 0123",    meaning:"CD ambassadors/diplomatic agents, CC consular officers, CM embassy admin & technical staff." },
+  { theme: THEME.protocol,    cat:"State protocol",                  fmt:"0001–0035",     meaning:"Fixed numbers for top offices of state (e.g. 0001 TBMM Speaker, 0005 Foreign Minister). President uses the presidential seal instead of a numbered plate." },
+  { theme: THEME.military,    cat:"Military",                        fmt:"7 34 128",      meaning:"Numeric only; leading digit = command (0 Defense/General Staff, 1–4 Army, 5 Navy, 6 Air Force, 7 Gendarmerie)." }
+];
+const legendTbl = document.getElementById('legendTable');
+legendRows.forEach(row=>{
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td><span class="swatch" style="background:${row.theme.bg};border-color:${row.theme.border};"></span></td>
+                   <td>${row.cat}</td>
+                   <td class="legend-format">${row.fmt}</td>
+                   <td>${row.meaning}</td>`;
+  legendTbl.appendChild(tr);
+});
+</script>
+</body>
+</html>
