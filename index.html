@@ -1,324 +1,524 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Dart Sums">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="icon" href="apple-touch-icon.png">
-<title>Dart Sums</title>
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet">
+<title>Turkish Plate Lookup</title>
+<meta name="description" content="Decode a Turkish vehicle registration plate — province, commercial, diplomatic, police, gendarmerie, protocol, and military formats.">
 <style>
-:root{--bg:#eef0e6;--panel:#fff;--ink:#12261d;--muted:#526b5d;--line:#c8d2c6;--red:#c8362f;--green:#1f8a4c;--onacc:#fff;--single:#e9e2c8;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10231b;--panel:#173227;--ink:#eef0e6;--muted:#9db3a6;--line:#2b4a3b;--red:#e0463d;--green:#3fae6c;--single:#d9d2b4}}
-:root[data-theme="dark"]{--bg:#10231b;--panel:#173227;--ink:#eef0e6;--muted:#9db3a6;--line:#2b4a3b;--red:#e0463d;--green:#3fae6c;--single:#d9d2b4}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.45 "Work Sans",system-ui,sans-serif}
-main{max-width:460px;margin:0 auto;padding:10px 14px 14px}
-.modes{display:flex;gap:6px;margin-bottom:6px}.modes button{flex:1;min-height:34px;padding:0 4px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;font:600 13px "Work Sans",sans-serif;cursor:pointer}.modes button[aria-pressed="true"]{background:var(--red);color:#fff;border-color:var(--red)}
-.levels{display:flex;gap:6px;margin-bottom:8px}
-.levels button{flex:1;min-height:38px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;font:600 15px "Work Sans",sans-serif;cursor:pointer}
-.levels button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.stats{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:13px;color:var(--muted)}
-.stats b{font:700 18px Oswald,sans-serif;color:var(--ink);margin-left:4px}
-.dots{display:flex;gap:5px}.dots i{width:12px;height:12px;border-radius:50%;border:2px solid var(--line)}.dots i.on{background:var(--green);border-color:var(--green)}
-.tbar{height:5px;background:var(--line);border-radius:3px;margin:-2px 0 8px;overflow:hidden;display:none}.tbar i{display:block;height:100%;width:100%;background:var(--red)}
-.levels .tm[aria-pressed="true"]{background:var(--red);border-color:var(--red);color:#fff}
-[hidden]{display:none!important}
-.topbar{display:flex;gap:6px;margin-bottom:6px}.topbar .modes{flex:1;margin-bottom:0}
-.helpbtn{width:40px;min-height:34px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;font:700 17px Oswald,sans-serif;cursor:pointer}
-.overlay{position:fixed;inset:0;z-index:10;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:14px}
-.sheet{background:var(--panel);color:var(--ink);border:1.5px solid var(--line);border-radius:16px;width:100%;max-width:460px;max-height:86vh;max-height:86dvh;overflow:auto;padding:14px 16px 16px}
-.sheethead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.sheethead h2{font:700 22px Oswald,sans-serif;margin:0}
-#helpclose{width:40px;height:40px;border:1.5px solid var(--line);background:transparent;color:var(--ink);border-radius:10px;font-size:16px;cursor:pointer}
-.tabs{display:flex;gap:6px;margin-bottom:10px}
-.tabs button{flex:1;min-height:38px;border:1.5px solid var(--line);background:transparent;color:var(--ink);border-radius:10px;font:600 14px "Work Sans",sans-serif;cursor:pointer}
-.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.pane{font-size:14px;line-height:1.5}
-.pane h3{font:700 16px Oswald,sans-serif;margin:12px 0 4px}
-.pane p{margin:0 0 6px}.pane ul,.pane ol{margin:0 0 6px;padding-left:20px}.pane li{margin-bottom:4px}
-.pane .note{color:var(--muted);font-size:13px}
-.done{display:block;width:100%;min-height:44px;margin-top:12px;border:0;border-radius:12px;background:var(--ink);color:var(--bg);font:700 16px "Work Sans",sans-serif;cursor:pointer}
-.card{background:var(--panel);border:1.5px solid var(--line);border-radius:16px;padding:12px 14px;min-height:0}
-.mode{font:600 14px "Work Sans",sans-serif;color:var(--muted);margin:0 0 6px}
-.q{font:500 19px/1.3 Oswald,sans-serif;margin:0}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px;align-items:center}
-.chip{display:inline-flex;align-items:center;justify-content:center;min-width:46px;height:46px;padding:0 8px;border-radius:23px;font:700 19px Oswald,sans-serif;color:#10231b;background:var(--single);border:3px solid var(--ink)}
-.chip.D{background:var(--green);color:#fff}.chip.T{background:var(--red);color:#fff}
-.plus{font:700 18px Oswald,sans-serif;color:var(--muted)}
-.legend{font-size:12px;color:var(--muted);margin:8px 0 0}
-.ans{margin:8px 0 6px;height:50px;border-bottom:3px solid var(--ink);display:flex;align-items:flex-end;justify-content:center;font:700 36px/1.1 Oswald,sans-serif}
-.ans.ok{color:var(--green)}.ans.bad{color:var(--red)}
-.fb{min-height:58px;margin:0 0 6px;font-size:14px;line-height:1.35}
-.fb strong{font-weight:600}
-.hint{display:block;width:100%;min-height:36px;margin:0 0 6px;border:1.5px dashed var(--line);background:transparent;color:var(--ink);border-radius:10px;font:600 14px "Work Sans",sans-serif;cursor:pointer}.hint:disabled{opacity:.45;cursor:default}
-.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.pad button{min-height:48px;border-radius:12px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);font:700 22px Oswald,sans-serif;cursor:pointer}
-.pad button:active{transform:scale(.97)}
-.pad .go{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-button:focus-visible{outline:3px solid var(--red);outline-offset:2px}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+  :root{
+    --bg:#f5f6f8;
+    --card:#ffffff;
+    --text:#1c1f26;
+    --muted:#6b7280;
+    --accent:#c0392b;
+    --accent-2:#1e3a5f;
+    --border:#e3e5ea;
+    --err-bg:#fdeceb;
+    --err-text:#a4291f;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#14161a;
+      --card:#1e2128;
+      --text:#e9eaed;
+      --muted:#9aa0aa;
+      --accent:#e05a4a;
+      --accent-2:#5b8fd6;
+      --border:#2c2f37;
+      --err-bg:#3a1f1d;
+      --err-text:#f0897d;
+    }
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    padding:max(20px, env(safe-area-inset-top)) 16px 40px;
+    display:flex;
+    justify-content:center;
+  }
+  .wrap{ width:100%; max-width:520px; }
+  h1{
+    font-size:22px;
+    margin:4px 0 2px;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{
+    color:var(--muted);
+    font-size:14px;
+    margin:0 0 20px;
+    line-height:1.4;
+  }
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:18px;
+    margin-bottom:16px;
+    box-shadow:0 1px 2px rgba(0,0,0,0.04);
+  }
+  label{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    color:var(--muted);
+    margin-bottom:8px;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+  }
+  .plate-input-row{
+    display:flex;
+    gap:8px;
+  }
+  input[type=text]{
+    flex:1;
+    font-size:20px;
+    font-weight:700;
+    letter-spacing:0.06em;
+    padding:12px 14px;
+    border-radius:10px;
+    border:1.5px solid var(--border);
+    background:var(--bg);
+    color:var(--text);
+    text-transform:uppercase;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  input[type=text]:focus{
+    outline:none;
+    border-color:var(--accent-2);
+  }
+  button{
+    font-size:15px;
+    font-weight:600;
+    padding:12px 18px;
+    border-radius:10px;
+    border:none;
+    background:var(--accent-2);
+    color:#fff;
+    cursor:pointer;
+  }
+  button:active{ opacity:0.85; }
+  .hint{
+    font-size:12px;
+    color:var(--muted);
+    margin-top:8px;
+    line-height:1.5;
+  }
+  #result{ display:none; margin-bottom:16px; }
+  #result.show{ display:block; }
+  #result.err .card{ background:var(--err-bg); color:var(--err-text); }
+
+  .plate-visual{
+    display:inline-block;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-weight:800;
+    font-size:26px;
+    letter-spacing:0.08em;
+    padding:10px 18px;
+    border-radius:8px;
+    border:3px solid rgba(0,0,0,0.25);
+    margin-bottom:10px;
+  }
+  .type-chip{
+    display:inline-block;
+    font-size:11.5px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    padding:4px 10px;
+    border-radius:999px;
+    margin-bottom:10px;
+  }
+  .result-title{
+    font-size:22px;
+    font-weight:800;
+    margin:2px 0 4px;
+  }
+  .result-detail{
+    font-size:14px;
+    color:var(--muted);
+    line-height:1.5;
+  }
+  .result-note{
+    font-size:12.5px;
+    color:var(--muted);
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px dashed var(--border);
+    line-height:1.5;
+  }
+
+  details{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:14px 18px;
+    margin-bottom:14px;
+  }
+  summary{
+    cursor:pointer;
+    font-weight:600;
+    font-size:14px;
+    color:var(--accent-2);
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:12px;
+    font-size:13px;
+  }
+  td, th{
+    padding:7px 4px;
+    border-bottom:1px solid var(--border);
+    text-align:left;
+    vertical-align:top;
+  }
+  td.code{
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-weight:700;
+    width:34px;
+    color:var(--accent);
+  }
+  .swatch{
+    display:inline-block;
+    width:16px;
+    height:16px;
+    border-radius:4px;
+    border:1px solid rgba(0,0,0,0.25);
+    vertical-align:middle;
+  }
+  .legend-format{
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:12px;
+    white-space:nowrap;
+  }
+  footer{
+    color:var(--muted);
+    font-size:11.5px;
+    text-align:center;
+    margin-top:22px;
+    line-height:1.6;
+  }
+  footer a{ color:var(--accent-2); }
 </style>
 </head>
 <body>
-<main>
-<div class="topbar"><div class="modes" id="modes" role="group" aria-label="Game"><button type="button" aria-pressed="true">Mixed</button><button type="button" aria-pressed="false">Doubles &amp; trebles</button></div><button type="button" class="helpbtn" id="helpbtn" aria-label="Game guide">?</button></div>
-<div class="levels" id="levels" role="group" aria-label="Level"></div>
-<div class="stats">
-<span>Score<b id="score">0</b></span>
-<span>Streak<b id="streak">0</b></span>
-<span><span id="bestl">Best streak</span><b id="best">0</b></span>
-<span class="dots" id="dots" aria-label="Correct answers towards next level"></span><b id="time" style="display:none;margin:0">60s</b>
-</div>
-<div class="tbar" id="tbar"><i id="tfill"></i></div>
-<section class="card">
-<p class="mode" id="mode"></p>
-<p class="q" id="q"></p>
-<div class="chips" id="chips"></div>
-<p class="legend">S = single, <span style="color:var(--green);font-weight:600">D</span> = double (×2), <span style="color:var(--red);font-weight:600">T</span> = treble (×3)</p>
-</section>
-<div class="ans" id="ans" aria-live="polite"></div>
-<p class="fb" id="fb" aria-live="polite"></p>
-<button class="hint" id="hint" type="button">Hint</button>
-<div class="pad" id="pad"></div>
-</main>
-<div class="overlay" id="help" hidden role="dialog" aria-modal="true" aria-labelledby="helptitle">
-<div class="sheet">
-<div class="sheethead"><h2 id="helptitle">Game guide</h2><button type="button" id="helpclose" aria-label="Close guide">✕</button></div>
-<div class="tabs" id="tabs"><button type="button" aria-pressed="true">How to play</button><button type="button" aria-pressed="false">iPhone</button><button type="button" aria-pressed="false">Android</button></div>
-<div class="pane" id="pane0">
-<h3>The idea</h3>
-<p>Practise mental arithmetic with darts scoring. Work out the answer in your head, type it on the keypad and tap ✓.</p>
-<h3>Reading a dart</h3>
-<p><b>S7</b> is a single 7 = 7. <b style="color:var(--green)">D7</b> is a double = 7 × 2 = 14. <b style="color:var(--red)">T7</b> is a treble = 7 × 3 = 21.</p>
-<h3>Question types</h3>
-<ul>
-<li><b>Dart total:</b> add up the darts.</li>
-<li><b>Countdown:</b> take the throw away from what you need.</li>
-<li><b>Checkout:</b> take away what you have thrown, then halve what is left to find the double that finishes.</li>
-<li><b>Doubles &amp; trebles mode</b> uses only D and T darts, and adds "What is T14 worth?" and "Which treble is worth 51?"</li>
-</ul>
-<h3>Levels</h3>
-<p>5 correct answers in a row moves you up a level. 3 wrong in a row drops you one. You can also tap a level (1 to 5) yourself.</p>
-<h3>Hints and speed</h3>
-<p>Tap <b>Hint</b> for the next step. Quick correct answers earn bonus points, up to 5 × your level.</p>
-<h3>60-second round</h3>
-<p>Tap <b>60s</b>, then <b>Start</b>. Answer as many as you can. Hints are off, and the clock pauses while feedback shows. Your best round is saved for each level and mode.</p>
-<h3>Saved scores</h3>
-<p>Bests and your last level are stored on this device only. The home screen app and the browser keep separate scores.</p>
-</div>
-<div class="pane" id="pane1" hidden>
-<h3>Add to Home Screen on iPhone</h3>
-<ol>
-<li>Open the game's link in <b>Safari</b>. Other browsers can't add it the same way.</li>
-<li>Tap the <b>Share</b> button (the square with an arrow pointing up).</li>
-<li>Scroll down and tap <b>Add to Home Screen</b>. If you can't see it, tap <b>More</b> or <b>Edit Actions</b>.</li>
-<li>Keep the name <b>Dart Sums</b> and tap <b>Add</b>.</li>
-<li>Open the new icon on your home screen to play full-screen.</li>
-</ol>
-<p class="note">Menus can look slightly different between iOS versions.</p>
-</div>
-<div class="pane" id="pane2" hidden>
-<h3>Add to Home Screen on Android</h3>
-<p><b>Chrome</b></p>
-<ol>
-<li>Open the game's link in Chrome.</li>
-<li>Tap the <b>⋮</b> menu at the top right.</li>
-<li>Tap <b>Add to Home screen</b> (some phones say <b>Install app</b>).</li>
-<li>Confirm with <b>Add</b> or <b>Install</b>. The icon appears on your home screen or in your app list.</li>
-</ol>
-<p><b>Samsung Internet</b></p>
-<ol>
-<li>Open the link and tap the <b>☰</b> menu.</li>
-<li>Tap <b>Add page to</b>, then <b>Home screen</b>.</li>
-</ol>
-<p class="note">Menu names vary a little between phones and browser versions.</p>
-</div>
-<button type="button" class="done" id="helpdone">Got it</button>
-</div>
-</div>
-<script>
-var NAMES=["Warm-up","Club","League","Pro","Final"];
-var MUL={S:1,D:2,T:3};
-var S={dt:false,level:1,score:0,streak:0,run:0,miss:0,cur:null,done:false,input:"",last:"",timed:false,running:false,timeLeft:60,right:0,total:0,qStart:0,auto:null};
-function R(a,b){return a+Math.floor(Math.random()*(b-a+1));}
-function dart(max,types){var t=types[R(0,types.length-1)],n=R(1,max);return{t:t,n:n,v:MUL[t]*n,l:t+n};}
-function darts(k,max,types){var a=[];for(var i=0;i<k;i++)a.push(dart(max,types));return a;}
-function sum(a){return a.reduce(function(s,d){return s+d.v;},0);}
-function chips(a){return a.map(function(d){return '<span class="chip '+d.t+'">'+d.l+'</span>';}).join('<span class="plus">+</span>');}
-function working(a){return a.map(function(d){return d.l+' = '+d.v;}).join(', ');}
+<div class="wrap">
+  <h1>🇹🇷 Plate Lookup</h1>
+  <p class="subtitle">Enter a Turkish vehicle registration number (VRN) — civilian, commercial, or official/government — to see what it decodes to.</p>
 
-function gScore(L){
- var k=[1,2,3,3,3][L-1],mx=[10,12,12,20,20][L-1],ty=(L===1||S.dt)?["D","T"]:["S","D","T"];
- var a=darts(k,mx,ty),t=sum(a);
- return{mode:"Dart total",q:"Add up the darts. What's the total?",chips:chips(a),ans:t,work:working(a)+" → "+t,hint:"Work out each dart first: S is ×1, D is ×2, T is ×3. Start with "+a[0].l+" = "+a[0].v+", then add the next dart."};
+  <div class="card">
+    <label for="plate">Plate number</label>
+    <div class="plate-input-row">
+      <input type="text" id="plate" placeholder="34 ABC" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" inputmode="text">
+      <button id="go">Look up</button>
+    </div>
+    <div class="hint">
+      For privacy, you don't need to enter the last 2–4 digits — they don't affect the province/category anyway. Just <b>34 ABC</b> works; the plate shown in results fills in a random number so it still looks like a real plate.<br>
+      Also recognizes: diplomatic (<b>06 CD</b>), gendarmerie (<b>34 JAA</b>), state protocol (<b>0005</b>), and military numeric plates (<b>7 34 128</b>).
+    </div>
+  </div>
+
+  <div id="result"><div class="card"></div></div>
+
+  <details>
+    <summary>All 81 province codes</summary>
+    <table id="fullTable"></table>
+  </details>
+
+  <details>
+    <summary>Plate colors &amp; official vehicle types</summary>
+    <p class="result-detail" style="margin-top:10px;">Turkey uses plate <em>color</em>, not just the text, to mark official vehicles — something this tool can only infer, not see. Auto-detected categories below are colored in results; the rest are shown for reference.</p>
+    <table id="legendTable">
+      <tr><th>Color</th><th>Category</th><th>Format</th><th>Meaning</th></tr>
+    </table>
+    <p class="result-note" style="border-top:none;padding-top:0;">
+      Compiled from Turkish traffic-law explainer sources cross-checked against each other (see footer) rather than a single official gazette, so treat exact protocol numbers and edge cases as indicative, not legally authoritative.
+    </p>
+  </details>
+
+  <footer>
+    Codes 01–81 assigned to Turkey's 81 provinces; 01–67 mostly alphabetical (with Mersin/İçel, Kahramanmaraş/Maraş, Şanlıurfa/Urfa historical exceptions), 68–81 added later in order of creation.<br>
+    Sources: Wikipedia's <a href="https://en.wikipedia.org/wiki/Vehicle_registration_plates_of_Turkey" target="_blank" rel="noopener">Vehicle registration plates of Turkey</a> &amp; <a href="https://en.wikipedia.org/wiki/Provinces_of_Turkey" target="_blank" rel="noopener">Provinces of Turkey</a>; commercial/official plate details cross-checked via Turkish traffic explainer sites (Otokoç, arabam.com, Ekşi Sözlük, DonanımHaber, Afyon Belediyesi taxi regulation).<br>
+    Tip: on iPhone, tap Share → “Add to Home Screen” in Safari to use this like an app.
+  </footer>
+</div>
+
+<script>
+const PROVINCES = {
+  "01":"Adana","02":"Adıyaman","03":"Afyonkarahisar","04":"Ağrı","05":"Amasya",
+  "06":"Ankara","07":"Antalya","08":"Artvin","09":"Aydın","10":"Balıkesir",
+  "11":"Bilecik","12":"Bingöl","13":"Bitlis","14":"Bolu","15":"Burdur",
+  "16":"Bursa","17":"Çanakkale","18":"Çankırı","19":"Çorum","20":"Denizli",
+  "21":"Diyarbakır","22":"Edirne","23":"Elazığ","24":"Erzincan","25":"Erzurum",
+  "26":"Eskişehir","27":"Gaziantep","28":"Giresun","29":"Gümüşhane","30":"Hakkari",
+  "31":"Hatay","32":"Isparta","33":"Mersin","34":"İstanbul","35":"İzmir",
+  "36":"Kars","37":"Kastamonu","38":"Kayseri","39":"Kırklareli","40":"Kırşehir",
+  "41":"Kocaeli","42":"Konya","43":"Kütahya","44":"Malatya","45":"Manisa",
+  "46":"Kahramanmaraş","47":"Mardin","48":"Muğla","49":"Muş","50":"Nevşehir",
+  "51":"Niğde","52":"Ordu","53":"Rize","54":"Sakarya","55":"Samsun",
+  "56":"Siirt","57":"Sinop","58":"Sivas","59":"Tekirdağ","60":"Tokat",
+  "61":"Trabzon","62":"Tunceli","63":"Şanlıurfa","64":"Uşak","65":"Van",
+  "66":"Yozgat","67":"Zonguldak","68":"Aksaray","69":"Bayburt","70":"Karaman",
+  "71":"Kırıkkale","72":"Batman","73":"Şırnak","74":"Bartın","75":"Ardahan",
+  "76":"Iğdır","77":"Yalova","78":"Karabük","79":"Kilis","80":"Osmaniye","81":"Düzce"
+};
+
+const COMMERCIAL_LETTERS = {
+  T:"Taxi (ticari taksi)",
+  M:"Minibus (minibüs)",
+  D:"Dolmuş (shared taxi / jitney)",
+  S:"Servis (private shuttle — staff, school, tourism)"
+};
+
+const DIPLOMATIC_CODES = {
+  CD:"Corps Diplomatique — ambassadors & diplomatic agents",
+  CC:"Corps Consulaire — consular officers",
+  CM:"Mission staff — embassy administrative & technical staff"
+};
+
+const MILITARY_BRANCHES = {
+  "0":"Ministry of National Defense / General Staff",
+  "1":"1st Army Command",
+  "2":"2nd Army Command",
+  "3":"3rd Army Command",
+  "4":"4th Army (Aegean) Command",
+  "5":"Naval Forces",
+  "6":"Air Forces",
+  "7":"Gendarmerie General Command"
+};
+
+const PROTOCOL_OFFICES = {
+  "0001":"Speaker of the Grand National Assembly (TBMM)",
+  "0002":"Vice President of the Republic (post-2018 presidential system; this number was the Prime Minister's Office before 2018)",
+  "0003":"President of the Constitutional Court",
+  "0004":"Chief of the General Staff",
+  "0005":"Minister of Foreign Affairs",
+  "0007":"Minister of Industry and Technology",
+  "0011":"Minister of Youth and Sports",
+  "0016":"Minister of National Defense",
+  "0017":"Minister of Interior",
+  "0018":"Minister of Treasury and Finance",
+  "0021":"Minister of Health",
+  "0023":"Minister of Agriculture and Forestry",
+  "0025":"Minister of Trade",
+  "0026":"Minister of National Education",
+  "0027":"Minister of Culture and Tourism",
+  "0028":"Minister of Energy and Natural Resources",
+  "0033":"Minister of Transport and Infrastructure",
+  "0035":"Minister of Justice"
+};
+
+// Visual themes approximate real plate colors
+const THEME = {
+  civilian:    { bg:"#ffffff", fg:"#111111", border:"rgba(0,0,0,0.35)", chipBg:"#e3e5ea", chipFg:"#33363d", label:"Civilian plate (white)" },
+  commercial:  { bg:"#ffffff", fg:"#111111", border:"rgba(0,0,0,0.35)", chipBg:"#f4d35e", chipFg:"#5a4600", label:"Commercial passenger plate (white, letter-coded)" },
+  police:      { bg:"#1447e6", fg:"#ffffff", border:"#0d2f9e",         chipBg:"#1447e6", chipFg:"#ffffff", label:"National Police (blue plate)" },
+  gendarmerie: { bg:"#1447e6", fg:"#ffffff", border:"#0d2f9e",         chipBg:"#274690", chipFg:"#ffffff", label:"Gendarmerie (blue plate)" },
+  diplomatic:  { bg:"#0f8a3c", fg:"#ffffff", border:"#0a5c28",         chipBg:"#0f8a3c", chipFg:"#ffffff", label:"Diplomatic corps (green plate)" },
+  protocol:    { bg:"#c0392b", fg:"#ffd54a", border:"#7c1f16",         chipBg:"#c0392b", chipFg:"#ffd54a", label:"State protocol (red & gold plate)" },
+  military:    { bg:"#ffffff", fg:"#111111", border:"#4b5320",         chipBg:"#4b5320", chipFg:"#ffffff", label:"Military (white plate, numeric only)" },
+  official:    { bg:"#111111", fg:"#ffffff", border:"#000000",         chipBg:"#111111", chipFg:"#ffffff", label:"Official service vehicle (black plate)" }
+};
+
+function normalize(str){
+  return str.toLocaleUpperCase('tr-TR').trim();
 }
-function gCount(L){
- var cfg=[[1,20,["S"],21,40],[1,20,["D","T"],41,100],[2,20,["S","D","T"],101,200],[3,20,["S","D","T"],201,301],[3,20,["S","D","T"],301,501]][L-1];
- var a,t,tries=0;
- do{a=darts(cfg[0],cfg[1],ft(cfg[2]));t=sum(a);tries++;}while(t>=cfg[4]-1&&tries<60);
- var lo=Math.max(cfg[3],t+1),hi=Math.max(lo,cfg[4]),st=R(lo,hi);
- return{mode:"Countdown",q:"You need <b>"+st+"</b>. You throw:",chips:chips(a),ans:st-t,hint:"Add up your darts first ("+working(a)+"), then take that total away from "+st+".",work:"Throws total "+sum(a)+" ("+working(a)+"). "+st+" − "+t+" = "+(st-t)};
+
+function esc(s){
+  return String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 }
-function gCheck(L){
- var d=R(1,20),first,r,w;
- if(L===1){r=2*d;return{mode:"Checkout",q:"You need <b>"+r+"</b>. Which double finishes? (D?)",chips:"",ans:d,hint:"A double is the number ×2, so halve "+r+" to find the number.",work:r+" ÷ 2 = "+d};}
- if(L===2)first=darts(1,20,ft(["S"]));
- else if(L===3)first=darts(1,20,["T"]);
- else first=darts(2,20,L===4?ft(["S","D","T"]):["D","T"]);
- var f=sum(first);r=f+2*d;
- return{mode:"Checkout",q:"You need <b>"+r+"</b>. You throw:",chips:chips(first)+'<span class="plus">then</span>',ans:d,hint:"Take your throw ("+f+") away from "+r+", then halve what is left.",work:r+" − "+f+" = "+(2*d)+", ÷ 2 = D"+d,sub:"Which double finishes? (D?)"};
+
+// Cosmetic only: the trailing serial digits don't affect province/category lookup,
+// so the app never requires them as input. When missing, a random 4-digit number
+// fills the visual so the rendered plate still looks like a real one.
+function randomDigits(){
+  return String(1000 + Math.floor(Math.random() * 9000));
 }
-function ft(t){if(!S.dt)return t;var r=t.filter(function(x){return x!=="S";});return r.length?r:["D","T"];}
-function gRing(L){
- var mx=[10,12,15,20,20][L-1],t=R(0,1)?"D":"T",n=R(1,mx),m=MUL[t],v=m*n,nm=t==="D"?"double":"treble";
- if(L>1&&R(0,1)){return{mode:"Which number",q:"Which "+nm+" is worth <b>"+v+"</b>? ("+t+"?)",chips:"",ans:n,hint:"A "+nm+" is the number ×"+m+", so divide "+v+" by "+m+".",work:v+" ÷ "+m+" = "+n+" → "+t+n};}
- return{mode:"Ring value",q:"What is this worth?",chips:chips([{t:t,n:n,v:v,l:t+n}]),ans:v,hint:"A "+nm+" is the number ×"+m+": "+n+" × "+m+".",work:t+n+" = "+n+" × "+m+" = "+v};
+
+const PRIVACY_NOTE = `<div class="result-note">The last 4 digits shown are randomly generated for display only — this tool never needs (or stores) a vehicle's actual serial number.</div>`;
+
+function renderPlate(theme, plateText){
+  return `<span class="plate-visual" style="background:${theme.bg};color:${theme.fg};border-color:${theme.border};">${esc(plateText)}</span>`;
 }
-function gens(){return S.dt?[gRing,gRing,gScore,gCount,gCheck]:[gScore,gCount,gCheck];}
-function next(){
- var g,tries=0;
- do{var G=gens();g=G[R(0,G.length-1)](S.level);tries++;}while(g.mode===S.last&&tries<8);
- clearTimeout(S.auto);
- S.last=g.mode;S.cur=g;S.done=false;S.input="";S.qStart=Date.now();
- $("mode").textContent=g.mode+" · "+NAMES[S.level-1];
- $("q").innerHTML=g.q;
- $("chips").innerHTML=g.chips+(g.sub?'<span style="flex-basis:100%;font:500 18px Oswald,sans-serif;color:var(--muted)">'+g.sub+'</span>':"");
- $("fb").textContent="";$("ans").textContent="";$("ans").className="ans";
- $("go").textContent="✓";$("hint").disabled=S.timed;
+
+function renderChip(theme){
+  return `<span class="type-chip" style="background:${theme.chipBg};color:${theme.chipFg};">${esc(theme.label)}</span>`;
 }
-function $(id){return document.getElementById(id);}
-var BK="dartsums.bests.v1",B={},tickLast=0,helpOpen=false;
-function loadB(){try{B=JSON.parse(localStorage.getItem(BK))||{};}catch(e){B={};}}
-function saveB(){try{localStorage.setItem(BK,JSON.stringify(B));}catch(e){}}
-function bestKey(){return "t"+(S.dt?"d":"m")+S.level;}
-function paintTime(){var t=Math.max(0,S.timeLeft);$("time").textContent=Math.ceil(t)+"s";$("tfill").style.width=(t/60*100)+"%";}
-function paintStats(){
- var g=S.timed;
- $("score").textContent=S.score;$("streak").textContent=S.streak;
- $("bestl").textContent=g?"Best":"Best streak";
- $("best").textContent=g?(B[bestKey()]||0):(B.streak||0);
- var h="";for(var i=0;i<5;i++)h+='<i class="'+(i<S.run?"on":"")+'"></i>';$("dots").innerHTML=h;
- $("dots").style.display=g?"none":"flex";
- $("time").style.display=g?"inline":"none";
- $("tbar").style.display=g?"block":"none";
- var b=$("levels").children;for(var j=0;j<5;j++)b[j].setAttribute("aria-pressed",String(j+1===S.level));
- b[5].setAttribute("aria-pressed",String(S.timed));
- if(g)paintTime();
+
+function showResult(html, isError){
+  const wrap = document.getElementById('result');
+  wrap.className = 'show' + (isError ? ' err' : '');
+  wrap.innerHTML = `<div class="card">${html}</div>`;
 }
-function showHelp(on){
- helpOpen=on;$("help").hidden=!on;
- if(on){$("helpclose").focus();}else{B.seen=true;saveB();}
+
+function lookup(){
+  const raw = document.getElementById('plate').value;
+  const clean = normalize(raw).replace(/\s+/g,' ').trim();
+  const noSpace = clean.replace(/[\s-]/g,'');
+
+  if(!clean){
+    showResult(`<div class="result-detail">Type a plate above and hit Look up.</div>`, true);
+    return;
+  }
+
+  // 1) Pure numeric -> Protocol (exactly 4 digits) or Military (anything else numeric)
+  if(/^[0-9]+$/.test(noSpace)){
+    if(noSpace.length === 4){
+      const office = PROTOCOL_OFFICES[noSpace];
+      const theme = THEME.protocol;
+      const html = `
+        ${renderChip(theme)}
+        ${renderPlate(theme, noSpace)}
+        <div class="result-title">${office ? esc(office) : 'Reserved state protocol number'}</div>
+        <div class="result-detail">${office
+          ? `Fixed 4-digit "red plate" numbers (0001–0035ish) are reserved for the most senior offices of state.`
+          : `This exact number isn't in this tool's reference list, but 4-digit red-and-gold plates are reserved for senior state offices. The President's vehicle doesn't use a numbered plate at all — it displays the presidential seal (forsu) instead.`}</div>
+        <div class="result-note">Compiled from Turkish news/explainer sources, not an official consolidated list — treat specific numbers as indicative.</div>`;
+      showResult(html, false);
+      return;
+    } else if(noSpace.length >= 3){
+      const branchDigit = noSpace[0];
+      const branch = MILITARY_BRANCHES[branchDigit];
+      const theme = THEME.military;
+      const html = `
+        ${renderChip(theme)}
+        ${renderPlate(theme, clean)}
+        <div class="result-title">${branch ? esc(branch) : 'Unrecognized branch code'}</div>
+        <div class="result-detail">Military plates are numeric only. The leading digit identifies the command: 0 Defense Ministry/General Staff, 1–4 Army Commands, 5 Navy, 6 Air Force, 7 Gendarmerie.</div>
+        ${branchDigit === '7' ? `<div class="result-note">As Gendarmerie, positions 2–3 of the plate typically carry the province code (e.g. a plate starting "734…" relates to code 34 / İstanbul). Remaining digits denote the specific unit and aren't decodable here.</div>` : `<div class="result-note">Remaining digits denote army corps/division/brigade and aren't decodable by this tool.</div>`}`;
+      showResult(html, false);
+      return;
+    }
+  }
+
+  // 2) Diplomatic: NN CD/CC/CM (+ optional NNNN)
+  let m = clean.match(/^(\d{2})\s*(CD|CC|CM)\s*(\d{2,4})?$/);
+  if(m){
+    const [, code, letters, enteredNum] = m;
+    const num = enteredNum || randomDigits();
+    const province = PROVINCES[code];
+    const theme = THEME.diplomatic;
+    const html = `
+      ${renderChip(theme)}
+      ${renderPlate(theme, `${code} ${letters} ${num}`)}
+      <div class="result-title">${esc(DIPLOMATIC_CODES[letters])}</div>
+      <div class="result-detail">Registered via ${province ? esc(province) + ' Province' : 'code ' + code} (embassies are typically 06/Ankara; consulates use the province they sit in, e.g. 34/İstanbul).</div>
+      ${enteredNum ? '' : PRIVACY_NOTE}`;
+    showResult(html, false);
+    return;
+  }
+
+  // 3) Gendarmerie letter-coded: NN JAA..JZZ (+ optional NNNN)
+  m = clean.match(/^(\d{2})\s*(J[A-Z]{2})\s*(\d{2,4})?$/);
+  if(m){
+    const [, code, letters, enteredNum] = m;
+    const num = enteredNum || randomDigits();
+    const province = PROVINCES[code];
+    const theme = THEME.gendarmerie;
+    const html = `
+      ${renderChip(theme)}
+      ${renderPlate(theme, `${code} ${letters} ${num}`)}
+      <div class="result-title">Gendarmerie vehicle</div>
+      <div class="result-detail">Jandarma Genel Komutanlığı service vehicle, registered via ${province ? esc(province) + ' Province' : 'code ' + code} (letter group JAA–JZZ). Some Gendarmerie vehicles instead use an all-numeric military-style plate starting with 7 — try entering one of those to see the branch breakdown.</div>
+      ${enteredNum ? '' : PRIVACY_NOTE}`;
+    showResult(html, false);
+    return;
+  }
+
+  // 4) Standard civilian / commercial / police pattern: NN LLL (+ optional NNNN)
+  m = clean.match(/^(\d{2})\s*([A-ZÇĞİÖŞÜ]{1,3})\s*(\d{2,4})?$/);
+  if(m){
+    const [, code, letters, enteredNum] = m;
+    const num = enteredNum || randomDigits();
+    const province = PROVINCES[code];
+
+    if(!province){
+      showResult(`<div class="result-title" style="font-size:16px;">Code ${esc(code)}</div><div class="result-detail">No province uses code ${esc(code)}. Valid range is 01–81.</div>`, true);
+      return;
+    }
+
+    // Commercial passenger transport: the FIRST letter of the group is the category code
+    // (T/M/D/S). The remaining letters, if any, are just sequential fill — small
+    // provinces may still be on a single letter ("34 T 1234"), while high-volume
+    // provinces like İstanbul have exhausted single/double letters and use three
+    // ("34 TEY 1234"), always still starting with the category letter.
+    if(COMMERCIAL_LETTERS[letters[0]]){
+      const theme = THEME.commercial;
+      const html = `
+        ${renderChip(theme)}
+        ${renderPlate(theme, `${code} ${letters} ${num}`)}
+        <div class="result-title">${esc(province)}</div>
+        <div class="result-detail">Likely a <b>${esc(COMMERCIAL_LETTERS[letters[0]])}</b> — the leading letter of the group marks the category (T taxi, M minibüs, D dolmuş, S servis). Any extra letters are just sequential fill, not part of the code. Still a white plate, same as private cars.</div>
+        <div class="result-note">This is a municipal convention, not a nationally codified rule, so treat it as a strong hint rather than a certainty.</div>
+        ${enteredNum ? '' : PRIVACY_NOTE}`;
+      showResult(html, false);
+      return;
+    }
+
+    // Possible Police plate: letter group is only "A" repeated 1-3 times
+    if(/^A{1,3}$/.test(letters)){
+      const theme = THEME.civilian;
+      const policeTheme = THEME.police;
+      const html = `
+        ${renderChip(theme)}
+        ${renderPlate(theme, `${code} ${letters} ${num}`)}
+        <div class="result-title">${esc(province)}</div>
+        <div class="result-detail">Reads as an ordinary civilian registration in ${esc(province)} Province.</div>
+        <div class="result-note">${renderChip(policeTheme)}<br>A letter group of just "A"/"AA"/"AAA" after the province code is also how National Police (Emniyet Genel Müdürlüğü) vehicles are coded, on a <b>blue</b> plate. Text alone can't tell the two apart — if you know the plate is blue, treat this as a police vehicle instead.</div>
+        ${enteredNum ? '' : PRIVACY_NOTE}`;
+      showResult(html, false);
+      return;
+    }
+
+    const theme = THEME.civilian;
+    const html = `
+      ${renderChip(theme)}
+      ${renderPlate(theme, `${code} ${letters} ${num}`)}
+      <div class="result-title">${esc(province)}</div>
+      <div class="result-detail">Plate "${esc(code + ' ' + letters)}" is registered in ${esc(province)} Province.</div>
+      ${enteredNum ? '' : PRIVACY_NOTE}`;
+    showResult(html, false);
+    return;
+  }
+
+  showResult(`<div class="result-title" style="font-size:16px;">Not recognized</div><div class="result-detail">Try a civilian plate like "34 ABC", a diplomatic plate like "06 CD", a protocol number like "0005", or a military plate like "7 34 128".</div>`, true);
 }
-function setTab(n){
- var t=$("tabs").children;
- for(var i=0;i<t.length;i++){t[i].setAttribute("aria-pressed",String(i===n));$("pane"+i).hidden=i!==n;}
-}
-function resetRun(){S.run=0;S.miss=0;S.streak=0;}
-function showReady(){
- S.done=true;S.input="";
- $("mode").textContent="60-second round · "+(S.dt?"Doubles & trebles":"Mixed")+" · Level "+S.level;
- $("q").innerHTML="Answer as many as you can. Quick answers earn bonus points.";
- $("chips").innerHTML="";$("fb").textContent="";$("ans").textContent="";$("ans").className="ans";
- $("go").textContent="Start";$("hint").disabled=true;
-}
-function setTimed(on){
- clearTimeout(S.auto);S.timed=on;S.running=false;S.score=0;resetRun();S.timeLeft=60;
- if(on)showReady();else next();
- paintStats();
-}
-function settingsChanged(){
- B.level=S.level;B.dt=S.dt;saveB();
- if(S.timed){setTimed(true);}else{clearTimeout(S.auto);S.running=false;resetRun();paintStats();next();}
-}
-function startRound(){
- S.score=0;resetRun();S.right=0;S.total=0;S.timeLeft=60;S.running=true;tickLast=Date.now();
- next();paintStats();
-}
-function endRound(){
- S.running=false;clearTimeout(S.auto);
- var k=bestKey(),prev=B[k]||0,nb=S.score>prev;
- if(nb){B[k]=S.score;saveB();}
- var acc=S.total?Math.round(100*S.right/S.total):0;
- $("mode").textContent="Time's up!";
- $("q").innerHTML="Score <b>"+S.score+"</b>"+(nb?" · New best!":" · Best "+prev);
- $("chips").innerHTML="";
- $("fb").textContent=S.right+" correct out of "+S.total+" ("+acc+"%).";
- $("ans").textContent="";$("ans").className="ans";
- $("go").textContent="Again";$("hint").disabled=true;S.done=true;
- paintStats();
-}
-function tick(){
- var now=Date.now(),d=Math.min(now-tickLast,500);tickLast=now;
- if(helpOpen||!S.timed||!S.running||S.done)return;
- S.timeLeft-=d/1000;
- if(S.timeLeft<=0){S.timeLeft=0;endRound();return;}
- paintTime();
-}
-function submit(){
- if(S.done){clearTimeout(S.auto);next();return;}
- if(S.input==="")return;
- var ok=parseInt(S.input,10)===S.cur.ans,msg;
- S.done=true;
- if(S.timed)S.total++;
- if(ok){
-  var sec=(Date.now()-S.qStart)/1000,bonus=Math.max(0,5-Math.floor(sec))*S.level,pts=10*S.level+bonus;
-  S.streak++;S.run++;S.miss=0;S.score+=pts;if(S.timed)S.right++;
-  if(S.streak>(B.streak||0)){B.streak=S.streak;saveB();}
-  msg="<strong>Correct!</strong> +"+pts+(bonus?" (speed +"+bonus+")":"")+". "+S.cur.work;
-  if(!S.timed&&S.run>=5&&S.level<5){S.level++;S.run=0;msg="<strong>Level up!</strong> Now at "+NAMES[S.level-1]+".";B.level=S.level;saveB();}
-  else if(S.run>=5){S.run=0;}
-  $("ans").className="ans ok";
- }else{
-  S.streak=0;S.miss++;
-  msg="<strong>Not quite.</strong> Answer: "+S.cur.ans+". "+S.cur.work;
-  if(!S.timed&&S.miss>=3&&S.level>1){S.level--;S.run=0;S.miss=0;msg+=" <strong>Dropping to "+NAMES[S.level-1]+" for more practice.</strong>";B.level=S.level;saveB();}
-  $("ans").className="ans bad";
- }
- $("fb").innerHTML=msg;$("go").textContent="Next";$("hint").disabled=true;paintStats();
- if(S.timed){S.auto=setTimeout(function(){if(S.running&&S.done&&!helpOpen)next();},ok?700:1800);}
-}
-function press(k){
- if(S.timed&&!S.running){if(k==="go")startRound();return;}
- if(k==="go"){submit();return;}
- if(S.done)return;
- if(k==="del")S.input=S.input.slice(0,-1);
- else if(S.input.length<4)S.input+=k;
- $("ans").textContent=S.input;
-}
-(function init(){
- loadB();
- if(B.level>=1&&B.level<=5)S.level=B.level;
- S.dt=!!B.dt;
- var lv=$("levels"),i;
- for(i=1;i<=5;i++){(function(n){var b=document.createElement("button");b.textContent=n;b.title=NAMES[n-1];b.setAttribute("aria-label","Level "+n+", "+NAMES[n-1]);b.onclick=function(){S.level=n;settingsChanged();};lv.appendChild(b);})(i);}
- var tm=document.createElement("button");tm.textContent="60s";tm.className="tm";tm.setAttribute("aria-label","60 second timed round");tm.onclick=function(){setTimed(!S.timed);};lv.appendChild(tm);
- $("hint").onclick=function(){if(!S.done&&!S.timed){$("fb").innerHTML="<strong>Hint:</strong> "+S.cur.hint;}};
- var pad=$("pad"),keys=["1","2","3","4","5","6","7","8","9","del","0","go"];
- keys.forEach(function(k){var b=document.createElement("button");b.textContent=k==="del"?"⌫":k==="go"?"✓":k;b.setAttribute("aria-label",k==="del"?"Delete":k==="go"?"Submit":k);if(k==="go"){b.className="go";b.id="go";}b.onclick=function(){press(k);};pad.appendChild(b);});
- document.addEventListener("keydown",function(e){
-  if(helpOpen){if(e.key==="Escape")showHelp(false);return;}
-  if(/^[0-9]$/.test(e.key))press(e.key);
-  else if(e.key==="Backspace")press("del");
-  else if(e.key==="Enter"){e.preventDefault();press("go");}
- });
- var mb=$("modes").children;
- for(i=0;i<mb.length;i++){(function(n){mb[n].setAttribute("aria-pressed",String(S.dt===(n===1)));mb[n].onclick=function(){S.dt=n===1;for(var j=0;j<mb.length;j++)mb[j].setAttribute("aria-pressed",String(j===n));settingsChanged();};})(i);}
- $("helpbtn").onclick=function(){setTab(0);showHelp(true);};
- $("helpclose").onclick=function(){showHelp(false);};
- $("helpdone").onclick=function(){showHelp(false);};
- $("help").onclick=function(e){if(e.target===$("help"))showHelp(false);};
- var tb=$("tabs").children;
- for(i=0;i<tb.length;i++){(function(n){tb[n].onclick=function(){setTab(n);};})(i);}
- setInterval(tick,100);
- paintStats();next();
- if(!B.seen){setTab(0);showHelp(true);}
-})();
+
+document.getElementById('go').addEventListener('click', lookup);
+document.getElementById('plate').addEventListener('keydown', e => { if(e.key === 'Enter') lookup(); });
+
+// Build full province reference table
+const tbl = document.getElementById('fullTable');
+Object.keys(PROVINCES).sort().forEach(code=>{
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td class="code">${code}</td><td>${PROVINCES[code]}</td>`;
+  tbl.appendChild(tr);
+});
+
+// Build plate-color legend table
+const legendRows = [
+  { theme: THEME.civilian,    cat:"Civilian (private)",              fmt:"34 ABC 123",   meaning:"Standard passenger car / motorcycle." },
+  { theme: THEME.commercial,  cat:"Commercial passenger transport",  fmt:"34 T 1234",     meaning:"T taxi, M minibüs, D dolmuş, S servis (shuttle) — leading letter of the group; extra letters are just sequential fill, municipal quota system." },
+  { theme: THEME.official,    cat:"Official service vehicle",        fmt:"varies",        meaning:"Ministries, municipalities, public institutions, ambulances, fire brigade." },
+  { theme: THEME.police,      cat:"National Police",                 fmt:"06 A 1234",     meaning:"Emniyet Genel Müdürlüğü vehicles; letter group is A, AA, or AAA." },
+  { theme: THEME.gendarmerie, cat:"Gendarmerie",                     fmt:"34 JAA 12",     meaning:"Jandarma Genel Komutanlığı; letter group JAA–JZZ (or numeric military-style plate starting with 7)." },
+  { theme: THEME.diplomatic,  cat:"Diplomatic corps",                fmt:"06 CD 0123",    meaning:"CD ambassadors/diplomatic agents, CC consular officers, CM embassy admin & technical staff." },
+  { theme: THEME.protocol,    cat:"State protocol",                  fmt:"0001–0035",     meaning:"Fixed numbers for top offices of state (e.g. 0001 TBMM Speaker, 0005 Foreign Minister). President uses the presidential seal instead of a numbered plate." },
+  { theme: THEME.military,    cat:"Military",                        fmt:"7 34 128",      meaning:"Numeric only; leading digit = command (0 Defense/General Staff, 1–4 Army, 5 Navy, 6 Air Force, 7 Gendarmerie)." }
+];
+const legendTbl = document.getElementById('legendTable');
+legendRows.forEach(row=>{
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td><span class="swatch" style="background:${row.theme.bg};border-color:${row.theme.border};"></span></td>
+                   <td>${row.cat}</td>
+                   <td class="legend-format">${row.fmt}</td>
+                   <td>${row.meaning}</td>`;
+  legendTbl.appendChild(tr);
+});
 </script>
 </body>
 </html>
